@@ -1,0 +1,42 @@
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode
+build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.xcresult
+
+# XcodeGen
+# Since project.yml exists, we assume the xcodeproj is generated.
+*.xcodeproj
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+
+# CocoaPods
+Pods/
+*.xcworkspace
+
+# Other
+*.swp
+*~
+*.profraw
+
+# Claude Code
+.claude/
+agents.md
+notarize.sh

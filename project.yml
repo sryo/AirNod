@@ -1,0 +1,19 @@
+name: AirNod
+options:
+  bundleIdPrefix: com.sryo
+targets:
+  AirNod:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - Sources
+    settings:
+      INFOPLIST_FILE: Info.plist
+      PRODUCT_BUNDLE_IDENTIFIER: com.sryo.airnod
+      CODE_SIGN_ENTITLEMENTS: AirNod.entitlements
+      CODE_SIGN_IDENTITY: "Developer ID Application"
+      CODE_SIGN_STYLE: Manual
+      DEVELOPMENT_TEAM: CL6XWJCS9R
+      LSUIElement: YES
+      ENABLE_HARDENED_RUNTIME: NO
