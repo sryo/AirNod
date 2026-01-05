@@ -1,11 +1,13 @@
 // Menu bar app entry point.
 
 import SwiftUI
+import Combine
 
 @main
 struct AirNodApp: App {
     @ObservedObject private var motionManager = HeadphoneMotionManager.shared
     @ObservedObject private var permissionsManager = PermissionsManager.shared
+    @ObservedObject private var iconRenderer = MenuBarIconRenderer.shared
     private static let sharedAudioLooper = AudioLooper()
 
     @Environment(\.openWindow) var openWindow
@@ -18,10 +20,27 @@ struct AirNodApp: App {
                 Self.sharedAudioLooper.start()
             }
         }
+
+        // Set up icon updates
+        setupIconUpdates()
+    }
+
+    private func setupIconUpdates() {
+        // Update icon when motion data changes
+        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            let mm = HeadphoneMotionManager.shared
+            MenuBarIconRenderer.shared.update(
+                pitch: mm.currentPitch,
+                yaw: mm.currentYaw,
+                roll: mm.currentRoll,
+                isActive: mm.isActive && mm.isReceivingData && !mm.isLookingAway,
+                isConnected: mm.isConnected
+            )
+        }
     }
 
     var body: some Scene {
-        MenuBarExtra("AirNod", systemImage: "headphones") {
+        MenuBarExtra {
             Button("Recenter") {
                 motionManager.recenter()
             }
@@ -76,23 +95,13 @@ struct AirNodApp: App {
                 NSApplication.shared.terminate(nil)
             }
             .keyboardShortcut("q")
+        } label: {
+            Image(nsImage: iconRenderer.currentImage)
         }
         .menuBarExtraStyle(.menu)
 
         Settings {
             PreferencesView()
-        }
-    }
-
-    private var menuBarIconName: String {
-        if !permissionsManager.isAccessibilityTrusted {
-            return "sensor.trianglebadge.exclamationmark"
-        } else if !motionManager.isConnected {
-            return "sensor"
-        } else if motionManager.isActive {
-            return "sensor.fill"
-        } else {
-            return "sensor"
         }
     }
 }

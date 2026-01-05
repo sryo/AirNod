@@ -3,7 +3,20 @@
 import SwiftUI
 
 struct HeadVisualizerView: View {
+    @Environment(\.colorScheme) var colorScheme
     @ObservedObject var motionManager: HeadphoneMotionManager
+
+    private var visualizerBackground: Color {
+        colorScheme == .dark
+            ? Color(white: 0.2)
+            : Color.secondary.opacity(0.1)
+    }
+
+    private var crosshairColor: Color {
+        colorScheme == .dark
+            ? Color(white: 0.4)
+            : Color.secondary.opacity(0.2)
+    }
 
     var body: some View {
         VStack(spacing: 16) {
@@ -27,16 +40,16 @@ struct HeadVisualizerView: View {
                 ZStack {
                     // Background
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.secondary.opacity(0.1))
+                        .fill(visualizerBackground)
                         .frame(width: 140, height: 140)
 
                     // Center crosshair (neutral position indicator)
                     Group {
                         Rectangle()
-                            .fill(Color.secondary.opacity(0.2))
+                            .fill(crosshairColor)
                             .frame(width: 1, height: 20)
                         Rectangle()
-                            .fill(Color.secondary.opacity(0.2))
+                            .fill(crosshairColor)
                             .frame(width: 20, height: 1)
                     }
 
@@ -178,6 +191,8 @@ struct HeadVisualizerView: View {
 }
 
 struct FaceView: View {
+    @Environment(\.colorScheme) var colorScheme
+
     let faceColor: Color
     let eyeOffsetX: CGFloat
     let eyeOffsetY: CGFloat
@@ -188,13 +203,32 @@ struct FaceView: View {
     let featureOffsetX: CGFloat  // Move features on face when looking sideways
     let featureOffsetY: CGFloat  // Move features on face when looking up/down
 
-    // Skin colors
-    private let skinDark = Color(red: 1.0, green: 0.4, blue: 0.4)       // #F66
-    private let skinMedium = Color(red: 1.0, green: 0.533, blue: 0.533) // #F88
-    private let skinLight = Color(red: 1.0, green: 0.667, blue: 0.667)  // #FAA
-    private let eyeWhite = Color.white
-    private let irisColor = Color(red: 0.4, green: 0.6, blue: 0.8)
-    private let pupilColor = Color(red: 0.2, green: 0.12, blue: 0.08)
+    // Adaptive colors: pinkish in light mode, navy in dark mode
+    private var skinDark: Color {
+        colorScheme == .dark
+            ? Color(red: 0, green: 0, blue: 0.2)       // #003 midnight
+            : Color(red: 1.0, green: 0.4, blue: 0.4)
+    }
+    private var skinLight: Color {
+        colorScheme == .dark
+            ? Color(red: 0, green: 0.2, blue: 0.4)     // #036 navy
+            : Color(red: 1.0, green: 0.667, blue: 0.667)
+    }
+    private var eyeWhite: Color {
+        colorScheme == .dark
+            ? Color(red: 1.0, green: 1.0, blue: 0.867) // off-white
+            : Color.white
+    }
+    private var irisColor: Color {
+        colorScheme == .dark
+            ? Color(red: 0.6, green: 0, blue: 0.2)     // #903
+            : Color(red: 0.4, green: 0.6, blue: 0.8)
+    }
+    private var pupilColor: Color {
+        colorScheme == .dark
+            ? Color(red: 0.6, green: 0, blue: 0.2)     // #903
+            : Color(red: 0.2, green: 0.12, blue: 0.08)
+    }
 
     var body: some View {
         ZStack {
