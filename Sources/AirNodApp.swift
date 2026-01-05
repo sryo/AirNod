@@ -34,7 +34,8 @@ struct AirNodApp: App {
                 yaw: mm.currentYaw,
                 roll: mm.currentRoll,
                 isActive: mm.isActive && mm.isReceivingData && !mm.isLookingAway,
-                isConnected: mm.isConnected
+                isConnected: mm.isConnected,
+                countdown: mm.countdownValue
             )
         }
     }

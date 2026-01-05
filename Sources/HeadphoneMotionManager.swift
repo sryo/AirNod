@@ -18,9 +18,9 @@ final class HeadphoneMotionManager: NSObject, ObservableObject {
     private let inputSynthesizer = InputSynthesizer()
 
     // Configuration with validation ranges
-    private static let sensitivityRange: ClosedRange<Double> = 0.1...3.0
-    private static let scrollThresholdRange: ClosedRange<Double> = 0.5 * .pi / 180.0...5.0 * .pi / 180.0
-    private static let clickThresholdRange: ClosedRange<Double> = 5.0 * .pi / 180.0...45.0 * .pi / 180.0
+    private static let sensitivityRange: ClosedRange<Double> = 0.1...4.0
+    private static let scrollThresholdRange: ClosedRange<Double> = 0.5 * .pi / 180.0...15.0 * .pi / 180.0
+    private static let clickThresholdRange: ClosedRange<Double> = 10.0 * .pi / 180.0...30.0 * .pi / 180.0
     private static let smoothingRange: ClosedRange<Double> = 0.05...0.5
 
     // Configuration
@@ -28,9 +28,9 @@ final class HeadphoneMotionManager: NSObject, ObservableObject {
     @Published var tiltLeftAction: HeadGestureAction = .click
     @Published var tiltRightAction: HeadGestureAction = .rightClick
     @Published var invertScroll: Bool = false
-    @Published var scrollThreshold: Double = 1.0 * .pi / 180.0 // 1 degree in radians
+    @Published var scrollThreshold: Double = 3.0 * .pi / 180.0 // 3 degrees deadzone
     @Published var clickThreshold: Double = 15.0 * .pi / 180.0 // 15 degrees for click gesture
-    @Published var smoothingAlpha: Double = 0.15 // 0.05 = smooth, 0.5 = responsive
+    @Published var smoothingAlpha: Double = 0.15
 
     // Look-away pause
     @Published var lookAwayPauseEnabled: Bool = true
@@ -48,7 +48,9 @@ final class HeadphoneMotionManager: NSObject, ObservableObject {
         }
     }
     @Published var isReceivingData: Bool = false
+    @Published var countdownValue: Int = 0  // 3, 2, 1, 0 (0 = no countdown)
     private var needsRecenter: Bool = false
+    private var countdownTimer: Timer?
     private var canTriggerLeft: Bool = true
     private var canTriggerRight: Bool = true
     private var isRestoringState: Bool = false
@@ -123,7 +125,7 @@ final class HeadphoneMotionManager: NSObject, ObservableObject {
         let rawSensitivity = defaults.object(forKey: UserDefaultsKeys.scrollSensitivity) as? Double ?? 1.0
         scrollSensitivity = min(max(rawSensitivity, Self.sensitivityRange.lowerBound), Self.sensitivityRange.upperBound)
 
-        let rawScrollThreshold = defaults.object(forKey: UserDefaultsKeys.scrollThreshold) as? Double ?? (1.0 * .pi / 180.0)
+        let rawScrollThreshold = defaults.object(forKey: UserDefaultsKeys.scrollThreshold) as? Double ?? (3.0 * .pi / 180.0)
         scrollThreshold = min(max(rawScrollThreshold, Self.scrollThresholdRange.lowerBound), Self.scrollThresholdRange.upperBound)
 
         let rawClickThreshold = defaults.object(forKey: UserDefaultsKeys.clickThreshold) as? Double ?? (15.0 * .pi / 180.0)
@@ -214,7 +216,9 @@ final class HeadphoneMotionManager: NSObject, ObservableObject {
         smoothedPitch = 0.0
         smoothedYaw = 0.0
         smoothedRoll = 0.0
-        needsRecenter = true  // Recenter on first motion data
+
+        // Start countdown for centering
+        startCenteringCountdown()
 
         motionManager.startDeviceMotionUpdates(to: .main) { [weak self] motion, error in
             guard let self = self, let motion = motion, error == nil else { return }
@@ -222,8 +226,31 @@ final class HeadphoneMotionManager: NSObject, ObservableObject {
         }
         isActive = true
     }
+
+    private func startCenteringCountdown() {
+        countdownTimer?.invalidate()
+        countdownValue = 3
+
+        countdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] timer in
+            guard let self = self else {
+                timer.invalidate()
+                return
+            }
+
+            self.countdownValue -= 1
+
+            if self.countdownValue <= 0 {
+                timer.invalidate()
+                self.countdownTimer = nil
+                self.needsRecenter = true
+            }
+        }
+    }
     
     func stopUpdates() {
+        countdownTimer?.invalidate()
+        countdownTimer = nil
+        countdownValue = 0
         motionManager.stopDeviceMotionUpdates()
         isActive = false
         isReceivingData = false

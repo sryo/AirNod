@@ -81,8 +81,7 @@ struct GeneralSettingsView: View {
 
             // Sensitivity Section
             Section {
-                // Tilt Threshold (for clicks)
-                LabeledContent("Tilt") {
+                LabeledContent("Tilt Threshold") {
                     HStack(spacing: 4) {
                         Text("Easy")
                             .font(.caption)
@@ -90,15 +89,14 @@ struct GeneralSettingsView: View {
                         Slider(value: Binding(
                             get: { motionManager.clickThreshold * 180.0 / .pi },
                             set: { motionManager.clickThreshold = $0 * .pi / 180.0 }
-                        ), in: 5.0...45.0, step: 1.0)
+                        ), in: 10.0...30.0, step: 1.0)
                         Text("Hard")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
 
-                // Scroll Threshold
-                LabeledContent("Scroll") {
+                LabeledContent("Scroll Deadzone") {
                     HStack(spacing: 4) {
                         Text("Small")
                             .font(.caption)
@@ -106,21 +104,32 @@ struct GeneralSettingsView: View {
                         Slider(value: Binding(
                             get: { motionManager.scrollThreshold * 180.0 / .pi },
                             set: { motionManager.scrollThreshold = $0 * .pi / 180.0 }
-                        ), in: 0.5...5.0, step: 0.25)
+                        ), in: 0.5...15.0, step: 0.5)
                         Text("Large")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
 
-                // Scroll Speed
-                LabeledContent("Speed") {
+                LabeledContent("Scroll Speed") {
                     HStack(spacing: 4) {
                         Text("Slow")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Slider(value: $motionManager.scrollSensitivity, in: 0.1...3.0, step: 0.1)
+                        Slider(value: $motionManager.scrollSensitivity, in: 0.1...4.0, step: 0.1)
                         Text("Fast")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                LabeledContent("Responsiveness") {
+                    HStack(spacing: 4) {
+                        Text("Smooth")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Slider(value: $motionManager.smoothingAlpha, in: 0.05...0.5, step: 0.05)
+                        Text("Snappy")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -128,7 +137,6 @@ struct GeneralSettingsView: View {
 
                 Divider()
 
-                // Toggles
                 Toggle("Invert Scroll Direction", isOn: $motionManager.invertScroll)
                 Toggle("Pause when looking away", isOn: $motionManager.lookAwayPauseEnabled)
             } header: {
@@ -156,7 +164,7 @@ struct GeneralSettingsView: View {
 
     private func resetToDefaults() {
         motionManager.scrollSensitivity = 1.0
-        motionManager.scrollThreshold = 1.0 * .pi / 180.0
+        motionManager.scrollThreshold = 3.0 * .pi / 180.0
         motionManager.clickThreshold = 15.0 * .pi / 180.0
         motionManager.tiltLeftAction = .click
         motionManager.tiltRightAction = .rightClick
